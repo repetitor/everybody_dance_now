@@ -1,73 +1,32 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use ClickHouseDB\Client;
+use App\Services\ClickHouseService;
 use Illuminate\Console\Command;
 
 class TestClickHouse extends Command
 {
     protected $signature = 'clickhouse:test';
-    protected $description = 'Test ClickHouse connection';
+    protected $description = 'Test ClickHouse connection and basic operations';
 
-    public function handle()
+    public function handle(ClickHouseService $service): int
     {
-        $client = new Client([
-            'host' => 'clickhouse',
-            'port' => 8123,
-            'username' => 'default',
-            'password' => '',
-            'settings' => ['connect_timeout' => 10]
-        ]);
-
         try {
-            $version = $client->select('SELECT version()')->fetchOne('version');
+            $version = $service->testConnection();
             $this->info("Connected to ClickHouse! Version: {$version}");
+
+            $data = $service->runTestScenario();
+
+            $this->table(
+                ['ID', 'Message', 'Created At'],
+                $data
+            );
+
+            return self::SUCCESS;
         } catch (\Exception $e) {
-            $this->error("Connection failed: " . $e->getMessage());
+            $this->error("Error: " . $e->getMessage());
+            return self::FAILURE;
         }
-
-        $this->testInsert();
-    }
-
-    public function testInsert(): void
-    {
-        $client = new Client([
-            'host' => 'clickhouse',
-            'port' => 8123,
-            'username' => 'default',
-            'password' => '',
-        ]);
-
-        // Явно указываем структуру таблицы при создании
-        $client->write('
-        CREATE TABLE IF NOT EXISTS test_data (
-            id UInt32,
-            message String,
-            created_at DateTime DEFAULT now()
-        ) ENGINE = MergeTree()
-        ORDER BY created_at
-    ');
-
-        // Правильный способ вставки данных (с экранированием)
-        $client->insert('test_data', [
-            ['id' => 1, 'message' => 'Первая запись'],
-            ['id' => 2, 'message' => 'Вторая запись'],
-        ], ['id', 'message']); // Явно указываем названия колонок
-
-        // Альтернативный вариант с сырым SQL (для сложных случаев)
-        $client->write("
-        INSERT INTO test_data (id, message) VALUES
-        (1, 'Первая запись'),
-        (2, 'Вторая запись')
-    ");
-
-        // Получаем данные
-        $results = $client->select('SELECT * FROM test_data');
-
-        $this->table(
-            ['ID', 'Message', 'Created At'],
-            $results->rows()
-        );
     }
 }

@@ -9,4 +9,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/test', [TestClickHouseController::class, 'test']);
+Route::prefix('clickhouse')->group(function () {
+    Route::get('test-connection', [TestClickHouseController::class, 'testConnection']);
+    Route::get('test-data', [TestClickHouseController::class, 'getTestData']);
+});
