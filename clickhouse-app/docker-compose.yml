@@ -20,6 +20,27 @@ services:
             - '.:/var/www/html'
         networks:
             - sail
+    clickhouse:
+        image: clickhouse/clickhouse-server:23.8-alpine
+        ports:
+            - "8123:8123"
+            - "9000:9000"
+        volumes:
+            - clickhouse_data:/var/lib/clickhouse
+        environment:
+            CLICKHOUSE_DB: laravel
+            CLICKHOUSE_USER: default
+            CLICKHOUSE_PASSWORD: ""
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost:8123/ping" ]
+            interval: 5s
+            timeout: 10s
+            retries: 10
+        networks:
+            - sail
 networks:
     sail:
         driver: bridge
+volumes:
+    clickhouse_data:
+        driver: local
