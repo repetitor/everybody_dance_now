@@ -1,6 +1,9 @@
-~~~
-curl -s https://laravel.build/clickhouse-app | bash
+```shell
 cd clickhouse-app
-./vendor/bin/sail up -d
-~~~
+cp .env.example .env
+
+docker-compose up -d
+composer install
+php artisan key:generate
+```
 
