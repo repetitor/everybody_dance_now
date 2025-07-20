@@ -40,4 +40,8 @@ COPY xdebug.ini /usr/local/etc/php/conf.d/
 RUN apk add --no-cache linux-headers ${PHPIZE_DEPS}
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 
+RUN apk add --no-cache bash
+
+RUN apk add --no-cache mysql-client
+
 WORKDIR /var/www/html
