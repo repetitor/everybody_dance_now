@@ -25,13 +25,19 @@ services:
       - laravel
 
   database:
-    image: mysql:${MYSQL_VERSION:-8.0}
+#    image: mysql:${MYSQL_VERSION:-8.0}
+#    command: sh -c "apt-get update || apk update && (apt-get install -y procps || apk add --no-cache procps) && docker-entrypoint.sh mysqld"
+#    environment:
+#      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+#      MYSQL_DATABASE: ${DB_DATABASE:-laravel}
+##    volumes:
+##      - mysql_data:/var/lib/mysql
+##      - ./docker/mysql/${MYSQL_VERSION:-8.0}/my.cnf:/etc/mysql/conf.d/custom.cnf
+#    volumes: []  # Удалите том mysql_data
+    image: mariadb:10.11  # Более стабильная версия
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
-      MYSQL_DATABASE: ${DB_DATABASE:-laravel}
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./docker/mysql/${MYSQL_VERSION:-8.0}/my.cnf:/etc/mysql/conf.d/custom.cnf
+      MARIADB_ROOT_PASSWORD: secret
+      MARIADB_DATABASE: laravel
     ports:
       - "3306:3306"
     networks:
